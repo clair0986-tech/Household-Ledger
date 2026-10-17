@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 
 const CATEGORIES = ["식비", "카페", "교통", "쇼핑", "구독", "기타"] as const;
@@ -40,73 +39,7 @@ function dateLabel(s: string) {
   return `${m}월 ${d}일 ${week}요일`;
 }
 
-function AuthForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"in" | "up">("in");
-  const [msg, setMsg] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setMsg("");
-    const { data, error } =
-      mode === "in"
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
-    setBusy(false);
-    if (error) setMsg(error.message);
-    else if (mode === "up" && !data.session) setMsg("가입 확인 메일을 보냈어요. 메일의 링크를 누른 뒤 로그인해주세요.");
-  }
-
-  return (
-    <main className="app">
-      <header className="header">
-        <p className="brand">clair 가계부</p>
-        <p className="total">{mode === "in" ? "로그인" : "회원가입"}</p>
-      </header>
-      <form className="login" onSubmit={submit}>
-        <input type="email" placeholder="이메일" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <input
-          type="password"
-          placeholder="비밀번호 (6자 이상)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          minLength={6}
-          required
-        />
-        {msg && <p className="msg">{msg}</p>}
-        <button className="primary" type="submit" disabled={busy}>
-          {mode === "in" ? "로그인" : "가입하기"}
-        </button>
-        <button className="link" type="button" onClick={() => setMode(mode === "in" ? "up" : "in")}>
-          {mode === "in" ? "계정이 없어요" : "이미 계정이 있어요"}
-        </button>
-      </form>
-    </main>
-  );
-}
-
 export default function Home() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setReady(true);
-    });
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data.subscription.unsubscribe();
-  }, []);
-
-  if (!ready) return null;
-  if (!session) return <AuthForm />;
-  return <Ledger />;
-}
-
-function Ledger() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
@@ -182,12 +115,7 @@ function Ledger() {
   return (
     <main className="app">
       <header className="header">
-        <div className="top">
-          <p className="brand">clair 가계부</p>
-          <button className="link" onClick={() => supabase.auth.signOut()}>
-            로그아웃
-          </button>
-        </div>
+        <p className="brand">clair 가계부</p>
         <p className="label">이번 달에 쓴 돈</p>
         <p className="total">{won(monthTotal)}</p>
       </header>
