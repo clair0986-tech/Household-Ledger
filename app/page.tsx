@@ -70,6 +70,8 @@ export default function Home() {
   const [category, setCategory] = useState<Category>("식비");
   const [date, setDate] = useState("");
   const [memo, setMemo] = useState("");
+  const [scanning, setScanning] = useState(false);
+  const [scanMsg, setScanMsg] = useState("");
 
   const monthPrefix = todayStr().slice(0, 7);
   const monthTotal = expenses
@@ -92,7 +94,44 @@ export default function Home() {
     setCategory("식비");
     setDate(todayStr());
     setMemo("");
+    setScanMsg("");
     setOpen(true);
+  }
+
+  async function scanReceipt(file: File) {
+    setScanning(true);
+    setScanMsg("");
+    try {
+      const bmp = await createImageBitmap(file);
+      const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bmp.width * scale);
+      canvas.height = Math.round(bmp.height * scale);
+      canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+      const image = canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
+
+      const res = await fetch("/api/receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image, mimeType: "image/jpeg" }),
+      });
+      const r = await res.json();
+      if (!res.ok) return setScanMsg(r.error);
+
+      if (r.amount) setAmount(r.amount.toLocaleString("ko-KR"));
+      if (r.place) setPlace(r.place);
+      if (r.date) setDate(r.date);
+      const missing = [!r.amount && "금액", !r.place && "사용처", !r.date && "날짜"].filter(Boolean);
+      setScanMsg(
+        missing.length
+          ? `${missing.join(", ")}은(는) 읽지 못했어요. 직접 입력해주세요.`
+          : "영수증에서 읽었어요. 내용을 확인하고 저장해주세요."
+      );
+    } catch {
+      setScanMsg("이미지를 읽지 못했어요. 다른 사진으로 다시 시도해주세요.");
+    } finally {
+      setScanning(false);
+    }
   }
 
   async function submit(e: React.FormEvent) {
@@ -162,6 +201,22 @@ export default function Home() {
         <div className="overlay" onClick={() => setOpen(false)}>
           <form className="sheet" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
             <h2>지출 입력</h2>
+
+            <label className="scan">
+              {scanning ? "영수증 읽는 중…" : "📷 영수증으로 채우기"}
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                disabled={scanning}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = "";
+                  if (f) scanReceipt(f);
+                }}
+              />
+            </label>
+            {scanMsg && <p className="msg">{scanMsg}</p>}
 
             <label>
               금액

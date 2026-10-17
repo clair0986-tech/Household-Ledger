@@ -50,3 +50,5 @@ button { border: 0; cursor: pointer; }
 .login input:focus { border-color: #3182f6; }
 .msg { font-size: 14px; color: #6b7684; padding: 0 4px; }
 .msg.err { color: #f04452; margin: 12px 20px 0; }
+
+.sheet label.scan { height: 52px; border-radius: 14px; background: #e8f3ff; color: #3182f6; font-size: 16px; font-weight: 600; align-items: center; justify-content: center; cursor: pointer; }
