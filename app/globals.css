@@ -42,3 +42,11 @@ button { border: 0; cursor: pointer; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { height: 40px; padding: 0 14px; border-radius: 20px; background: #f2f4f6; color: #4e5968; font-size: 15px; font-weight: 500; }
 .chip.on { background: #e8f3ff; color: #3182f6; font-weight: 600; }
+
+.top { display: flex; justify-content: space-between; align-items: center; }
+.link { background: none; color: #8b95a1; font-size: 14px; padding: 4px 0; }
+.login { padding: 24px 16px; display: flex; flex-direction: column; gap: 12px; }
+.login input { height: 56px; padding: 0 16px; border-radius: 14px; border: 2px solid transparent; background: #fff; font-size: 17px; outline: none; }
+.login input:focus { border-color: #3182f6; }
+.msg { font-size: 14px; color: #6b7684; padding: 0 4px; }
+.msg.err { color: #f04452; margin: 12px 20px 0; }
